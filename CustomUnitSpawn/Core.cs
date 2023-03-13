@@ -16,7 +16,8 @@ namespace CustomUnitSpawn{
   }
   public class Settings {
     public bool debugLog { get; set; } = false;
-    public Dictionary<string, TagReplaceRule> tags_weights { get; set; } = new Dictionary<string, TagReplaceRule>();
+    public Dictionary<string, TagReplaceRule> required_tags_weights { get; set; } = new Dictionary<string, TagReplaceRule>();
+    public Dictionary<string, TagReplaceRule> excluded_tags_weights { get; set; } = new Dictionary<string, TagReplaceRule>();
   }
   public static class Core {
     public static string BaseDir { get; set; } = string.Empty;

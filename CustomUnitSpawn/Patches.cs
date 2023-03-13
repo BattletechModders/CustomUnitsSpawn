@@ -43,9 +43,13 @@ namespace CustomUnitSpawn {
     public class tagItem {
       public List<string> tags = new List<string>();
       public int index = 0;
+      public float weight = 0f;
+      public bool is_excluded = false;
       public string tag = string.Empty;
-      public tagItem(string tag, TagReplaceRule rrule) {
+      public tagItem(string tag, bool is_excluded, TagReplaceRule rrule) {
         this.tag = tag;
+        this.is_excluded = is_excluded;
+        this.weight = (rrule != null? rrule.weight : 9999f);
         tags = new List<string>();
         tags.Add(tag);
         if(rrule != null)tags.AddRange(rrule.replace);
@@ -78,48 +82,51 @@ namespace CustomUnitSpawn {
       result.AddRange(__result);
       if (result.Count == 0) {
         List<string> tags = new List<string>();
-        tags.AddRange(requiredTags);
-        tags.AddRange(excludedTags);
-        tags.Sort(
-          (a, b) => {
-            float a_weight = 9999f;
-            float b_weight = 9999f;
-            if(Core.Settings.tags_weights.TryGetValue(a, out var a_tag_info)) {
-              a_weight = a_tag_info.weight;
-            }
-            if (Core.Settings.tags_weights.TryGetValue(b, out var b_tag_info)) {
-              b_weight = b_tag_info.weight;
-            }
-            return a_weight.CompareTo(b_weight);
-          }
-        );
-        TagSet effective_requiredTags = new TagSet(requiredTags);
-        TagSet effective_excludedTags = new TagSet(excludedTags);
         tagItterator tagsVariants = new tagItterator();
-        foreach (var tag in tags) {
+        foreach (var tag in requiredTags) {
           tagItem item = null;
-          if (Core.Settings.tags_weights.TryGetValue(tag, out var tag_info)) {
-            item = new tagItem(tag, tag_info);
+          if (Core.Settings.required_tags_weights.TryGetValue(tag, out var tag_info)) {
+            item = new tagItem(tag, false, tag_info);
           } else {
-            item = new tagItem(tag, null);
+            item = new tagItem(tag, false, null);
           }
           tagsVariants.Add(item);
-          Log.W(1, $"tag:{item.tag} ");
+        }
+        foreach (var tag in excludedTags) {
+          tagItem item = null;
+          if (Core.Settings.excluded_tags_weights.TryGetValue(tag, out var tag_info)) {
+            item = new tagItem(tag, true, tag_info);
+          } else {
+            item = new tagItem(tag, true, null);
+          }
+          tagsVariants.Add(item);
+        }
+        tagsVariants.items.Sort((a, b) => { return a.weight.CompareTo(b.weight); });
+        foreach(var item in tagsVariants.items) {
+          Log.W(1, $"tag:{item.tag}({item.weight}) type:{(item.is_excluded?"exclude":"require")} ");
           foreach (var ntag in item.tags) { Log.W(1, ntag); }
           Log.WL(0, "");
         }
+        //TagSet effective_requiredTags = new TagSet(requiredTags);
+        //TagSet effective_excludedTags = new TagSet(excludedTags);
+        //tagItterator tagsVariants = new tagItterator();
         int itteration = 0;
         while (tagsVariants.increment()) {
-          TagSet temp_requiredTags = new TagSet(requiredTags);
-          TagSet temp_excludedTags = new TagSet(excludedTags);
+          TagSet temp_requiredTags = new TagSet();
+          TagSet temp_excludedTags = new TagSet();
           foreach(var tag in tagsVariants.items) {
-            if (temp_requiredTags.Contains(tag.tag)) {
-              temp_requiredTags.Remove(tag.tag);
-              if (string.IsNullOrEmpty(tag.curtag) == false) { temp_requiredTags.Add(tag.curtag); }
-            } else if (temp_excludedTags.Contains(tag.tag)) {
-              temp_excludedTags.Remove(tag.tag);
-              if (string.IsNullOrEmpty(tag.curtag) == false) { temp_excludedTags.Add(tag.curtag); }
+            if (tag.is_excluded) {
+              temp_excludedTags.Add(tag.curtag);
+            } else {
+              temp_requiredTags.Add(tag.curtag);
             }
+            //if (temp_requiredTags.Contains(tag.tag)) {
+            //  temp_requiredTags.Remove(tag.tag);
+            //  if (string.IsNullOrEmpty(tag.curtag) == false) { temp_requiredTags.Add(tag.curtag); }
+            //} else if (temp_excludedTags.Contains(tag.tag)) {
+            //  temp_excludedTags.Remove(tag.tag);
+            //  if (string.IsNullOrEmpty(tag.curtag) == false) { temp_excludedTags.Add(tag.curtag); }
+            //}
           }
           result = mdd.GetMatchingDataByTagSet<UnitDef_MDD>(TagSetType.UnitDef, temp_requiredTags, temp_excludedTags, "UnitDef", "", checkOwnership, "UnitDefID");
           result.RemoveAll((Predicate<UnitDef_MDD>)(unitDef => !mdd.CanRandomlySelectUnitDef(unitDef, currentDate, companyTags)));
