@@ -75,8 +75,8 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="AfterBuild">
-    <Copy SourceFiles="$(TargetPath);mod.json;Readme.txt" DestinationFolder="$(BattleTechGameDir)\Mods\Core\CustomUnitSpawn" Condition="'$(BattleTechGameDir)' != '' And Exists('$(BattleTechGameDir)\Mods\Core\CustomUnitSpawn')" />
-    <Copy SourceFiles="$(TargetPath);mod.json;Readme.txt" DestinationFolder="$(BattleTechGameDir)\Mods_CBDE\Core\CustomUnitSpawn" Condition="'$(BattleTechGameDir)' != '' And Exists('$(BattleTechGameDir)\Mods_CBDE\Core\CustomUnitSpawn')" />
-    <Copy SourceFiles="$(TargetPath);mod.json;Readme.txt" DestinationFolder="$(RogueTechRepo)\Core\CustomUnitSpawn" Condition="'$(RogueTechRepo)' != '' And Exists('$(RogueTechRepo)\Core\CustomUnitSpawn')" />
+    <Copy SourceFiles="$(TargetPath);Readme.txt" DestinationFolder="$(BattleTechGameDir)\Mods\Core\CustomUnitSpawn" Condition="'$(BattleTechGameDir)' != '' And Exists('$(BattleTechGameDir)\Mods\Core\CustomUnitSpawn')" />
+    <Copy SourceFiles="$(TargetPath);Readme.txt" DestinationFolder="$(BattleTechGameDir)\Mods_CBDE\Core\CustomUnitSpawn" Condition="'$(BattleTechGameDir)' != '' And Exists('$(BattleTechGameDir)\Mods_CBDE\Core\CustomUnitSpawn')" />
+    <Copy SourceFiles="$(TargetPath);Readme.txt" DestinationFolder="$(RogueTechRepo)\Core\CustomUnitSpawn" Condition="'$(RogueTechRepo)' != '' And Exists('$(RogueTechRepo)\Core\CustomUnitSpawn')" />
   </Target>
 </Project>

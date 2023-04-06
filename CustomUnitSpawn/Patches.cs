@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
+using UnityEngine;
 
 namespace CustomUnitSpawn {
   [HarmonyPatch(typeof(LanceOverride))]
@@ -35,6 +36,36 @@ namespace CustomUnitSpawn {
       } catch (Exception e) {
         Log.TWL(0, e.ToString(), true);
       }
+    }
+  }
+  [HarmonyPatch(typeof(TagSetQueryExtensions))]
+  [HarmonyPatch("CanRandomlySelectUnitDef")]
+  [HarmonyPatch(MethodType.Normal)]
+  [HarmonyPatch(new Type[] { typeof(MetadataDatabase), typeof(UnitDef_MDD), typeof(DateTime?), typeof(TagSet) })]
+  public static class TagSetQueryExtensions_CanRandomlySelectUnitDef {
+    public static void Prefix(ref bool __runOriginal, MetadataDatabase mdd, UnitDef_MDD unitDef, DateTime? currentDate, TagSet companyTags, ref bool __result) {
+      try {
+        __runOriginal = false;
+        if (currentDate.HasValue && DebugBridge.EnforceMinAppearnceDateForUnits) {
+          DateTime dateTime = currentDate.Value;
+          DateTime? date = unitDef.GetDate();
+          if ((date.HasValue ? (dateTime < date.GetValueOrDefault() ? 1 : 0) : 0) != 0) {
+            Debug.LogWarning((object)string.Format("Rejecting unit [{0}] because currentDate[{1}] < MinAppearanceDate[{2}]", (object)unitDef.UnitDefID, (object)currentDate.Value, (object)unitDef.GetDate()));
+            __result = false;
+            return;
+          }
+        }
+        if (companyTags == null || !DebugBridge.EnforceRequiredCompanyTagsForUnits || companyTags.ContainsAll(unitDef.GetRequiredToSpawnCompanyTagSet())) {
+          __result = true;
+          return;
+        }
+        Debug.LogWarning((object)string.Format("Rejecting unit [{0}] because CompanTags did not include all the required Tags[{1}]", (object)unitDef.UnitDefID, (object)unitDef.GetRequiredToSpawnCompanyTagSet()));
+        __result = false;
+        return;
+      } catch (Exception e) {
+        Debug.LogException(e);
+      }
+      __result = false;
     }
   }
   public static class TagSetQueryExtensions_GetMatchingUnitDefs {
