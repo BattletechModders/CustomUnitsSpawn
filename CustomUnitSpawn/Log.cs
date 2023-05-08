@@ -17,13 +17,17 @@ namespace CustomUnitSpawn {
     public static void flushThreadProc() {
       while (Log.flushThreadActive == true) {
         Thread.Sleep(10 * 1000);
-        Log.LogWrite("flush\n");
+        //Log.LogWrite("flush\n");
         Log.flush();
       }
     }
     public static void InitLog() {
       Log.m_logfile = Path.Combine(BaseDirectory, "Log.txt");
-      File.Delete(Log.m_logfile);
+      if (File.Exists(Log.m_logfile)) {
+        string prev_file = Path.Combine(BaseDirectory, "Log_prev.txt");
+        File.Delete(prev_file);
+        File.Move(Log.m_logfile, prev_file);
+      }
       Log.m_fs = new StreamWriter(Log.m_logfile);
       Log.m_fs.AutoFlush = true;
       Log.flushThread.Start();

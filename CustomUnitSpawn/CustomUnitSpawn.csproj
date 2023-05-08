@@ -31,7 +31,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="BepInEx.AssemblyPublicizer.MSBuild" Version="0.3.0" />
+    <PackageReference Include="Krafs.Publicizer" Version="2.2.1" />
+		<Publicize Include="Assembly-CSharp;UnityEngine.UI;UnityEngine.CoreModule" />
+		<DoNotPublicize Include="Assembly-CSharp:BattleTech.UI.SelectionState" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="0Harmony">
